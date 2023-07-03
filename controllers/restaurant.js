@@ -1,5 +1,5 @@
 const { City, Restaurant, User } = require('../models/Model');
-const bcrypt = require('bcrypt')
+const bcrypt = require('bcrypt');
 
 // Register Restuarant
 exports.registerRestaurant = async (req, res) => {
@@ -44,7 +44,7 @@ exports.registerRestaurant = async (req, res) => {
 
     city.restaurants.push(restaurant);
 
-    const hashPassword = bcrypt.hashSync(password, 10)
+    const hashPassword = bcrypt.hashSync(password, 10);
     user = new User({
       username,
       password: hashPassword,
@@ -61,13 +61,43 @@ exports.registerRestaurant = async (req, res) => {
   }
 };
 
-// Get Citis 
+// Get Citis
 exports.getCities = async (req, res) => {
+  try {
+    const cities = await City.find({}, 'name');
+    res.json({ success: true, cities });
+  } catch (error) {
+    console.log(error);
+  }
+};
 
-    try {
-        const cities = await City.find({}, 'name')
-        res.json({success: true, cities})
-    } catch (error) {
-        console.log(error);
-    }
+
+exports.getRestaurantOfCity = async (req, res) => {
+  let cityname = req.params?.city
+  cityname = cityname?.toLowerCase()
+
+  try {
+    let city = await City.findOne({name: cityname}, 'restaurants')
+    if(!city) return res.json({success: false, msg: 'No restaurant found in your city!'})
+    res.json({success: true, restaurants: city.restaurants});
+  } catch (error) {
+    console.log(error);
+  }
+} 
+
+exports.getRestaurant = async (req, res) => {
+  let restaurantname = req.params?.restaurantname
+  let cityname = req.params?.city
+
+  try {
+    const city = await City.findOne({name: cityname})
+
+    if(!city) return res.json({success: false, msg: 'No restaurant found'})
+
+    const restaurant = city.restaurants.find((restaurant) => restaurant.slug === restaurantname)
+    if(!restaurant) return res.json({success: false, msg: 'No restaurant found'})
+    res.json({success: true, restaurant})
+  } catch (error) {
+    console.log(error);
+  }
 }
