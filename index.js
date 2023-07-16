@@ -5,6 +5,7 @@ const { connectDB } = require('./config/db');
 const cookieParser = require('cookie-parser');
 const app = express();
 const port = 8000 || process.env.PORT;
+const stripe = require('stripe')(process.env.STRIPE_SECRECT)
 
 // require router
 const restaurantRouter = require('./routers/restaurant');
@@ -30,6 +31,30 @@ app.use('/auth', authRouter);
 app.get('/', (req, res) => {
   res.send('Hello World');
 });
+
+
+app.post('/create-checkout-session', async (req, res) => {
+  const session = await stripe.checkout.sessions.create({
+    line_items: [
+      {
+        price_data: {
+          currency: 'usd',
+          product_data: {
+            name: 'T-shirt',
+          },
+          unit_amount: 2000,
+        },
+        quantity: 1,
+      },
+    ],
+    mode: 'payment',
+    success_url: process.env.CLIENT_URL+"/checkout/success",
+    cancel_url: process.env.CLIENT_URL,
+  });
+
+  res.redirect(303, session.url);
+});
+
 
 connectDB();
 app.listen(port, () =>

@@ -1,9 +1,9 @@
 const jwt = require('jsonwebtoken');
 
 exports.validedUser = async (req, res, next) => {
-  const cookie = req?.headers?.cookie;
-
+  
   try {
+    const cookie = req?.headers?.cookie;
     if (!cookie) {
       return res.status(401).json({ msg: 'Token not found' });
     }

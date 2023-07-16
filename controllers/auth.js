@@ -13,12 +13,12 @@ exports.login = async (req, res) => {
     const isMatched = await bcrypt.compare(password, user.password);
     if (!isMatched)
       return res.status(401).json({ success: false, msg: 'Invalid credentials' });
-
+    res.clearCookie('jwt');
     const token = jwt.sign({ user: user._id }, process.env.JWT_SECRECT, {
       expiresIn: '30d',
     });
 
-    res.cookie(String(user._id), token, {
+    res.cookie('jwt', token, {
       path: '/',
       expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
       httpOnly: true,
@@ -51,7 +51,7 @@ exports.getUser = async (req, res) => {
 exports.logout = async (req, res) => {
   const userId = req.userId;
   try {
-    res.clearCookie(String(userId));
+    res.clearCookie('jwt');
     res.json({ msg: 'Logout successfully' });
   } catch (error) {}
 };

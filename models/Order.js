@@ -31,6 +31,13 @@ const orderSchema = new mongoose.Schema({
   ],
   totalAmount: Number,
   // Other order details
+
+  status: {
+    type: String,
+    default: ''
+  }
+}, {
+  timestamps: true
 });
 
 module.exports = mongoose.model('Order', orderSchema);
