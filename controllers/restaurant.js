@@ -14,6 +14,7 @@ exports.registerRestaurant = async (req, res) => {
   try {
     const admin = await User.findById(userId);
 
+
     if (!admin || admin.role !== 'admin') {
       return res
         .status(401)

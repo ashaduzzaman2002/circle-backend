@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
 
-exports.connectDB = () => {
-    mongoose
-  .connect('mongodb://localhost:27017/swiggy_clone')
-  .then(() => console.log('DB connected successfully'))
-  .catch((err) => console.log(err));
-}
+exports.connectDB = async () => {
+  try {
+    await mongoose.connect(process.env.MONGO_URI);
+    console.log('DB connected successfully');
+  } catch (error) {
+    console.log(error);
+  }
+};

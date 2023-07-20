@@ -5,21 +5,26 @@ const { connectDB } = require('./config/db');
 const cookieParser = require('cookie-parser');
 const app = express();
 const port = 8000 || process.env.PORT;
-const stripe = require('stripe')(process.env.STRIPE_SECRECT)
+const stripe = require('stripe')(process.env.STRIPE_SECRECT);
+const mongoose = require('mongoose');
 
 // require router
 const restaurantRouter = require('./routers/restaurant');
 const authRouter = require('./routers/auth');
 
 // Middleware
-app.use((req, res, next) => {
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  next();
-});
+app.use(
+  cors({
+    origin: [
+      'http://localhost:3000',
+      'https://swiggy-clone-kappa.vercel.app',
+    ],
+    credentials: true,
+    allowedHeaders: ['Content-Type', 'Authorization'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  })
+);
 
-app.use(cors({ origin: 'http://localhost:3000', credentials: true }));
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -31,7 +36,6 @@ app.use('/auth', authRouter);
 app.get('/', (req, res) => {
   res.send('Hello World');
 });
-
 
 app.post('/create-checkout-session', async (req, res) => {
   const session = await stripe.checkout.sessions.create({
@@ -48,15 +52,15 @@ app.post('/create-checkout-session', async (req, res) => {
       },
     ],
     mode: 'payment',
-    success_url: process.env.CLIENT_URL+"/checkout/success",
+    success_url: process.env.CLIENT_URL + '/checkout/success',
     cancel_url: process.env.CLIENT_URL,
   });
 
   res.redirect(303, session.url);
 });
 
-
 connectDB();
+
 app.listen(port, () =>
   console.log(`Server is running on http://localhost:${port}`)
 );
