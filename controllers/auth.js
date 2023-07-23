@@ -14,6 +14,7 @@ exports.login = async (req, res) => {
     if (!isMatched)
       return res.status(401).json({ success: false, msg: 'Invalid credentials' });
     res.clearCookie('jwt');
+    
     const token = jwt.sign({ user: user._id }, process.env.JWT_SECRECT, {
       expiresIn: '30d',
     });

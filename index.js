@@ -5,20 +5,19 @@ const { connectDB } = require('./config/db');
 const cookieParser = require('cookie-parser');
 const app = express();
 const port = 8000 || process.env.PORT;
-const stripe = require('stripe')(process.env.STRIPE_SECRECT);
-const mongoose = require('mongoose');
+const cloudinary = require('cloudinary');
+const Razorpay = require('razorpay');
 
 // require router
 const restaurantRouter = require('./routers/restaurant');
 const authRouter = require('./routers/auth');
+const paymentRouter = require('./routers/paymentRoute.js')
+
 
 // Middleware
 app.use(
   cors({
-    origin: [
-      'http://localhost:3000',
-      'https://swiggy-clone-kappa.vercel.app',
-    ],
+    origin: ['http://localhost:3000', 'https://swiggy-clone-kappa.vercel.app'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
@@ -31,36 +30,32 @@ app.use(express.urlencoded({ extended: true }));
 
 app.use('/restaurants', restaurantRouter);
 app.use('/auth', authRouter);
+app.use('/payment', paymentRouter)
 
 // Routes
 app.get('/', (req, res) => {
   res.send('Hello World');
 });
 
-app.post('/create-checkout-session', async (req, res) => {
-  const session = await stripe.checkout.sessions.create({
-    line_items: [
-      {
-        price_data: {
-          currency: 'usd',
-          product_data: {
-            name: 'T-shirt',
-          },
-          unit_amount: 2000,
-        },
-        quantity: 1,
-      },
-    ],
-    mode: 'payment',
-    success_url: process.env.CLIENT_URL + '/checkout/success',
-    cancel_url: process.env.CLIENT_URL,
-  });
-
-  res.redirect(303, session.url);
+// Cloudinary
+cloudinary.v2.config({
+  cloud_name: process.env.CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRECT,
 });
+
+exports.instance = new Razorpay({
+  key_id: process.env.RAZORPAY_API_KEY,
+  key_secret: process.env.RAZORPAY_API_SECRECT
+})
+
+app.get('/api/getkey', (req, res) => res.json({success: true, key: process.env.RAZORPAY_API_KEY}))
+
 
 connectDB();
 
 app.listen(port, () =>
   console.log(`Server is running on http://localhost:${port}`)
 );
+
+

@@ -1,11 +1,11 @@
 const jwt = require('jsonwebtoken');
 
 exports.validedUser = async (req, res, next) => {
-  
   try {
     const cookie = req?.headers?.cookie;
+    
     if (!cookie) {
-      return res.status(401).json({ msg: 'Token not found' });
+      return res.status(401).json({ msg: 'Token not found 1' });
     }
 
     const token = cookie?.split('=')[1];

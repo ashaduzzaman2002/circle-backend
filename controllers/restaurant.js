@@ -3,6 +3,8 @@ const User = require('../models/User');
 const City = require('../models/City');
 const Restaurant = require('../models/Restaurant');
 const Food = require('../models/Food');
+const dataURI = require('../utils/dataUri');
+const cloudinary = require('cloudinary');
 
 // Register Restuarant
 exports.registerRestaurant = async (req, res) => {
@@ -13,7 +15,6 @@ exports.registerRestaurant = async (req, res) => {
 
   try {
     const admin = await User.findById(userId);
-
 
     if (!admin || admin.role !== 'admin') {
       return res
@@ -111,6 +112,9 @@ exports.addFood = async (req, res) => {
   const userId = req.userId;
   const { name, desc, img, price, type, category } = req.body;
 
+  const file = req.file;
+
+
   try {
     const user = await User.findById(userId);
 
@@ -126,50 +130,53 @@ exports.addFood = async (req, res) => {
         .status(401)
         .json({ success: false, msg: 'Unauthorized access! 2' });
 
+    const fileUri = dataURI(file);
+    const mycloud = await cloudinary.v2.uploader.upload(fileUri.content);
+
+
     const food = new Food({
       restaurant: restaurant._id,
       name,
       desc,
-      img,
+      img: mycloud.secure_url,
       price,
       type,
       category,
     });
 
-    await food.save()
+    await food.save();
 
-    res.json({success: true, msg: "Food added successfully", food})
+    res.json({ success: true, msg: 'Food added successfully', food });
   } catch (error) {
     console.log(error);
     res.status(500).json({ succcess: false, msg: 'Internal server error' });
   }
 };
 
-
 exports.getFoodsOfRestaurant = async (req, res) => {
-  const restaurant_id = req.params?.restaurant_id
+  const restaurant_id = req.params?.restaurant_id;
 
   try {
-    const foods = await Food.find({restaurant: restaurant_id})
+    const foods = await Food.find({ restaurant: restaurant_id });
 
-    if(!foods) return res.status(404).json({success: false, msg: "No items found"})
+    if (!foods)
+      return res.status(404).json({ success: false, msg: 'No items found' });
 
-    res.json({succcess: true, foods})
-  } catch (error) {
-    
-  }
-}
+    res.json({ succcess: true, foods });
+  } catch (error) {}
+};
 
 exports.getFoodById = async (req, res) => {
-  const food_id = req.params?.food_id
+  const food_id = req.params?.food_id;
 
   try {
-    const food = await Food.findById(food_id)
-    
-    if(!food) return res.status(404).json({success: false, msg: 'Item not found'})
+    const food = await Food.findById(food_id);
 
-    res.json({success: true, food})
+    if (!food)
+      return res.status(404).json({ success: false, msg: 'Item not found' });
+
+    res.json({ success: true, food });
   } catch (error) {
     console.log(error);
   }
-}
+};
