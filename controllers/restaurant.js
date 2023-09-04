@@ -114,6 +114,10 @@ exports.addFood = async (req, res) => {
 
   const file = req.file;
 
+  if (file == undefined) {
+    return res.status(400).send('Unable to upload')
+  }
+
 
   try {
     const user = await User.findById(userId);
@@ -130,15 +134,15 @@ exports.addFood = async (req, res) => {
         .status(401)
         .json({ success: false, msg: 'Unauthorized access! 2' });
 
-    const fileUri = dataURI(file);
-    const mycloud = await cloudinary.v2.uploader.upload(fileUri.content);
+    // const fileUri = dataURI(file);
+    // const mycloud = await cloudinary.v2.uploader.upload(fileUri.content);
 
 
     const food = new Food({
       restaurant: restaurant._id,
       name,
       desc,
-      img: mycloud.secure_url,
+      img: '/images/' + file.filename,
       price,
       type,
       category,
@@ -163,7 +167,7 @@ exports.getFoodsOfRestaurant = async (req, res) => {
       return res.status(404).json({ success: false, msg: 'No items found' });
 
     res.json({ succcess: true, foods });
-  } catch (error) {}
+  } catch (error) { }
 };
 
 exports.getFoodById = async (req, res) => {

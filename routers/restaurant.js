@@ -8,7 +8,7 @@ const {
   getFoodById,
 } = require('../controllers/restaurant');
 const { validedUser } = require('../middleware/userValidation');
-const singleUpload = require('../middleware/multer');
+const {upload} = require('../middleware/multer');
 const checkImageUpload = require('../middleware/fileUpload');
 
 const Router = require('express').Router;
@@ -21,8 +21,7 @@ router.get('/restaurant/:restaurant_id', getRestaurant);
 router.post(
   '/restaurant/add/food',
   validedUser,
-  singleUpload,
-  checkImageUpload,
+  upload.single('file'),
   addFood
 );
 router.get('/restaurant/:restaurant_id/foods', getFoodsOfRestaurant);

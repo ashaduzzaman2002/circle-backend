@@ -22,11 +22,12 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
   })
-);
-
-app.use(cookieParser());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+  );
+  
+  app.use(cookieParser());
+  app.use(express.json());
+  app.use(express.urlencoded({ extended: true }));
+  app.use('/images', express.static('images'));
 
 app.use('/restaurants', restaurantRouter);
 app.use('/auth', authRouter);
