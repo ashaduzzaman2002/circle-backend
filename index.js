@@ -22,12 +22,12 @@ app.use(
     allowedHeaders: ['Content-Type', 'Authorization'],
     methods: ['GET', 'POST', 'PUT', 'DELETE'],
   })
-  );
-  
-  app.use(cookieParser());
-  app.use(express.json());
-  app.use(express.urlencoded({ extended: true }));
-  app.use('/images', express.static('images'));
+);
+
+app.use(cookieParser());
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use('/images', express.static('images'));
 
 app.use('/restaurants', restaurantRouter);
 app.use('/auth', authRouter);
@@ -50,7 +50,7 @@ exports.instance = new Razorpay({
   key_secret: process.env.RAZORPAY_API_SECRECT
 })
 
-app.get('/api/getkey', (req, res) => res.json({success: true, key: process.env.RAZORPAY_API_KEY}))
+app.get('/api/getkey', (req, res) => res.json({ success: true, key: process.env.RAZORPAY_API_KEY }))
 
 
 connectDB();
