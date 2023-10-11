@@ -7,12 +7,22 @@ const app = express();
 const port = 8000 || process.env.PORT;
 const cloudinary = require('cloudinary');
 const Razorpay = require('razorpay');
+const http = require("http");
+const socketIo = require("socket.io");
+const server = http.createServer(app);
+
 
 // require router
 const restaurantRouter = require('./routers/restaurant');
 const authRouter = require('./routers/auth');
-const paymentRouter = require('./routers/paymentRoute.js')
+const paymentRouter = require('./routers/paymentRoute.js');
+const { initialize } = require('./config/socket');
 
+// Initialize Socket.io
+const io = socketIo(server);
+
+// Listen for incoming connections
+initialize(server)
 
 // Middleware
 app.use(
@@ -27,7 +37,6 @@ app.use(
 app.use(cookieParser());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use('/images', express.static('images'));
 
 app.use('/restaurants', restaurantRouter);
 app.use('/auth', authRouter);
@@ -50,12 +59,12 @@ exports.instance = new Razorpay({
   key_secret: process.env.RAZORPAY_API_SECRECT
 })
 
-app.get('/api/getkey', (req, res) => res.json({ success: true, key: process.env.RAZORPAY_API_KEY }))
+app.get('/api/getkey', (req, res) => res.json({success: true, key: process.env.RAZORPAY_API_KEY}))
 
 
 connectDB();
 
-app.listen(port, () =>
+server.listen(port, () =>
   console.log(`Server is running on http://localhost:${port}`)
 );
 
