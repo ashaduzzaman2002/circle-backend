@@ -12,17 +12,21 @@ const {
   getAllRestaurant,
   getRestaurantById,
   getMenuOfARestaurant,
+  loginRestaurant,
 } = require("../controllers/restaurant");
 const { validedUser } = require("../middleware/userValidation");
 const singleUpload = require("../middleware/multer");
 const checkImageUpload = require("../middleware/fileUpload");
+const { UserCreateUserInputValidation, UserLoginInputValidation } = require("../middleware/inputValidation");
+const { body } = require("express-validator");
 
 const Router = require("express").Router;
 const router = Router();
 
 router.get("/get-all-item", getAllItem);
 router.get("/all-restaurant", getAllRestaurant);
-router.post("/register", validedUser, registerRestaurant);
+router.post("/register", UserCreateUserInputValidation, registerRestaurant);
+router.post("/login", UserLoginInputValidation, loginRestaurant);
 router.get("/cities", getCities);
 router.get("/:city/all", getRestaurantOfCity);
 router.get("/restaurant/:id", getRestaurantById);

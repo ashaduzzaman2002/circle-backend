@@ -1,11 +1,12 @@
 const bcrypt = require("bcrypt");
-const User = require("../models/User");
+const jwt = require("jsonwebtoken");
 const City = require("../models/City");
 const Restaurant = require("../models/Restaurant");
 const Food = require("../models/Food");
 const dataURI = require("../utils/dataUri");
 const cloudinary = require("cloudinary");
 const Order = require("../models/Order");
+const { validationResult } = require("express-validator");
 
 exports.getAllItem = async (req, res) => {
   try {
@@ -56,59 +57,87 @@ exports.getMenuOfARestaurant = async (req, res) => {
 
 // Register Restuarant
 exports.registerRestaurant = async (req, res) => {
-  const { cityName, name, location, profile_img, username, email, password } =
-    req.body;
+  const { name, email, password, location, cityName, profile_img } = req.body;
 
   const userId = req.userId;
+  
+  const err = validationResult(req)
+  if(!err.isEmpty()) {
+    return res.status(400).json({success: false, msg: err.array()})
+  }
 
   try {
-    const admin = await User.findById(userId);
-
-    if (!admin || admin.role !== "admin") {
-      return res
-        .status(401)
-        .json({ success: false, msg: "Unauthorized access!" });
-    }
-
+    const restaurantUser = await Restaurant.findOne({ email })
+    if(restaurantUser) return res.status(400).json({success: false, msg: 'User already exist.'})
+    
     const lowerCaseCityName = cityName.toLowerCase();
-    let user = await User.findOne({ email });
-
-    if (user)
-      return res.json({
-        success: false,
-        msg: "Restaurant allready registered",
-      });
-
     let city = await City.findOne({ name: lowerCaseCityName });
-
     if (!city) {
       city = new City({
         name: lowerCaseCityName,
       });
     }
-
+    
+    const hashPassword = bcrypt.hashSync(password, 10);
     let restaurant = new Restaurant({
       name,
+      email,
+      password: hashPassword,
       location,
       profile_img,
       city: city._id,
     });
 
-    const hashPassword = bcrypt.hashSync(password, 10);
-    user = new User({
-      username,
-      password: hashPassword,
-      email,
-      restaurant: restaurant._id,
-    });
-
     await city.save();
-    await user.save();
     await restaurant.save();
 
     res.json({ success: true, msg: "Restaurant registration successful" });
   } catch (error) {
     console.log(error);
+    res.status(501).json({ success: true, msg: "Internal server error" });
+  }
+};
+
+// Login Restuarant
+exports.loginRestaurant = async (req, res) => {
+  const { email, password } = req.body;
+
+  const err = validationResult(req)
+  if(!err.isEmpty()) {
+    return res.status(400).json({success: false, msg: err.array()})
+  }
+
+  try {
+    let user = await Restaurant.findOne({ email });
+
+    if (!user) return res.status(404).json({ success: false, msg: "User not exist" });
+    
+    const isPasswordMatched = await bcrypt.compare(password, user.password);
+    
+    if (!isPasswordMatched) return res.status(401).json({ success: false, msg: "Invalid credentials" });
+    
+    // if (!user.verified) return res.status(404).json({ success: false, msg: "User is not active" });
+
+    res.clearCookie("jwt");
+
+    const token = await jwt.sign({ user: user._id },  process.env.JWT_SECRECT, {
+      expiresIn: '30d',
+    });
+
+    res.cookie(user._id, token, {
+      path: "/",
+      expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * 30),
+      httpOnly: true,
+      sameSite: "lax",
+    });
+
+    user.password = undefined
+
+    res.status(200).json({ success: true, msg: "User logged in successfully", user });
+
+  } catch (error) {
+    console.log(error)
+    res.status(501).json({success: false, msg: 'Internal server error'})
   }
 };
 

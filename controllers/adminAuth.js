@@ -1,9 +1,15 @@
 const Admin = require("../models/Admin");
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
+const { validationResult } = require("express-validator");
 
 exports.login = async (req, res) => {
   const { email, password } = req.body;
+
+  const err = validationResult(req)
+  if(!err.isEmpty()) {
+    return res.status(400).json({success: false, msg: err.array()})
+  }
 
   try {
     let user = await Admin.findOne({ email });
