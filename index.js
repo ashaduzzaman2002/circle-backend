@@ -14,7 +14,8 @@ const server = http.createServer(app);
 
 // require router
 const restaurantRouter = require('./routers/restaurant');
-const authRouter = require('./routers/auth');
+const userAuthRouter = require('./routers/userAuth');
+const adminAuthRouter = require('./routers/adminAuth');
 const paymentRouter = require('./routers/paymentRoute.js');
 const { initialize } = require('./config/socket');
 
@@ -39,7 +40,8 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 app.use('/restaurants', restaurantRouter);
-app.use('/auth', authRouter);
+app.use('/userAuth', userAuthRouter);
+app.use('/adminAuth', adminAuthRouter);
 app.use('/payment', paymentRouter)
 
 // Routes
